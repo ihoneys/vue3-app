@@ -16,6 +16,7 @@
 
 <script>
 import { toRefs, ref, reactive, onMounted, watchEffect } from "vue";
+import request from "./utils/request";
 export default {
   setup() {
     // const state = reactive({
@@ -30,23 +31,30 @@ export default {
       error: false,
       loading: false,
     });
-    const fetchData = async (query) => {
-      state.error = false;
-      state.loading = true;
-      try {
-        const data = await fetch(
-          `https://hn.algolia.com/api/v1/search?query=${query}`
-        ).then((rsp) => rsp.json());
-        state.hits = data.hits;
-      } catch (error) {
-        state.error = true;
-      }
-      state.loading = false;
-    };
+    // const fetchData = async (query) => {
+    //   state.error = false;
+    //   state.loading = true;
+    //   try {
+    //     const data = await fetch(
+    //       `https://hn.algolia.com/api/v1/search?query=${query}`
+    //     ).then((rsp) => rsp.json());
+    //     state.hits = data.hits;
+    //   } catch (error) {
+    //     state.error = true;
+    //   }
+    //   state.loading = false;
+    // };
     // const stop = watchEffect(() => {
     //   if (state.query === "vue3") stop();
     //   fetchData(state.query);
     // });
+    const query = ref("vue");
+    const { data, loading, error, run } = request({
+      url: "https://hn.algolia.com/api/v1/search",
+      params: {
+        query,
+      },
+    });
     onMounted(() => {
       watchEffect(() => {
         fetchData(state.query);
@@ -55,7 +63,15 @@ export default {
     const setQuery = () => {
       state.query = state.input;
     };
-    return { ...toRefs(state), setQuery };
+    return {
+      ...toRefs(state),
+      setQuery,
+      search: run,
+      loading,
+      error,
+      query,
+      data,
+    };
   },
 };
 </script>
